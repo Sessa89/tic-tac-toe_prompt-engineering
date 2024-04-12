@@ -4,6 +4,11 @@ body {
     font-family: 'Open Sans', sans-serif;
     margin: 0;
     color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
 }
 
 h1 {
@@ -12,6 +17,7 @@ h1 {
 
 #content {
     margin-top: 300px;
+    margin-bottom: 20px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -53,14 +59,16 @@ table td {
     border-right: 0;
   }
 
-
-
-/*
-table {
-    border-collapse: collapse;
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }
-table, th, td {
-    border: 1px solid black;
-    padding: 10px;
+
+button:hover {
+    background-color: #45a049;
 }
-*/

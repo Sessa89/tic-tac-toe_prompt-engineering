@@ -140,3 +140,18 @@ function drawWinningLine(combination) {
     line.style.transformOrigin = `top left`;
     contentDiv.appendChild(line);
 }
+
+function restartGame() {
+    fields = [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+    ];
+    render();
+}
