@@ -10,145 +10,123 @@ let fields = [
     null,
 ];
 
-let currentPlayer = 'circle'; // Startspieler ist "Kreis"
+const WINNING_COMBINATIONS = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8], // horizontal
+    [0, 3, 6], [1, 4, 7], [2, 5, 8], // vertical
+    [0, 4, 8], [2, 4, 6], // diagonal
+];
+
+let currentPlayer = 'circle';
+
 
 function init() {
     render();
 }
-
 function render() {
     const contentDiv = document.getElementById('content');
-    let tableHTML = '<table>';
-
+    // Generate table HTML
+    let tableHtml = '<table>';
     for (let i = 0; i < 3; i++) {
-        tableHTML += '<tr>';
-
+        tableHtml += '<tr>';
         for (let j = 0; j < 3; j++) {
             const index = i * 3 + j;
             let symbol = '';
-
             if (fields[index] === 'circle') {
-                symbol = generateAnimatedCircleSVG();
+                symbol = generateCircleSVG();
             } else if (fields[index] === 'cross') {
-                symbol = generateAnimatedCrossSVG();
+                symbol = generateCrossSVG();
             }
-
-            // Hinzufügen des onclick-Attributs für das Aufrufen der Funktion
-            tableHTML += `<td onclick="handleClick(${index})">${symbol}</td>`;
+            tableHtml += `<td onclick="handleClick(this, ${index})">${symbol}</td>`;
         }
-        tableHTML += '</tr>';
+        tableHtml += '</tr>';
     }
-    tableHTML += '</table>';
-
-    contentDiv.innerHTML = tableHTML;
+    tableHtml += '</table>';
+    // Set table HTML to contentDiv
+    contentDiv.innerHTML = tableHtml;
 }
-
-// Funktion zum Verarbeiten des Klicks auf ein Feld
-function handleClick(index) {
-    // Überprüfen, ob das Feld bereits belegt ist
-    if (!fields[index]) {
-        // Abwechselnd "circle" oder "cross" einfügen
+function handleClick(cell, index) {
+    if (fields[index] === null) {
         fields[index] = currentPlayer;
-
-        // HTML-Code für das entsprechende Symbol generieren
-        const symbol = currentPlayer === 'circle' ? generateAnimatedCircleSVG() : generateAnimatedCrossSVG();
-
-        // HTML-Code in das angeklickte <td>-Element einfügen
-        const clickedCell = document.getElementsByTagName('td')[index];
-        clickedCell.innerHTML = symbol;
-
-        // onclick-Funktion des angeklickten <td>-Elements entfernen
-        clickedCell.removeAttribute('onclick');
-
-        // Wechsle den Spieler
+        cell.innerHTML = currentPlayer === 'circle' ? generateCircleSVG() : generateCrossSVG();
+        cell.onclick = null;
         currentPlayer = currentPlayer === 'circle' ? 'cross' : 'circle';
+
+        if (isGameFinished()) {
+            const winCombination = getWinningCombination();
+            drawWinningLine(winCombination);
+        }
     }
 }
 
-function generateAnimatedCircleSVG() {
-    const circleColor = "#00B0EF";
-    const circleSize = 70;
-    const animationDuration = 125; // 125ms Animation
+function isGameFinished() {
+    return fields.every((field) => field !== null) || getWinningCombination() !== null;
+}
 
-    // SVG-Element erstellen
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("width", circleSize);
-    svg.setAttribute("height", circleSize);
-
-    // Kreis erstellen
-    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    circle.setAttribute("cx", circleSize / 2); // x-Koordinate des Mittelpunkts
-    circle.setAttribute("cy", circleSize / 2); // y-Koordinate des Mittelpunkts
-    circle.setAttribute("r", circleSize / 2); // Radius des Kreises
-    circle.setAttribute("fill", "none"); // Anfangsfarbe (keine Füllung)
-    circle.setAttribute("stroke", circleColor); // Kreisfarbe
-    circle.setAttribute("stroke-width", circleSize / 10); // Strichstärke
-    circle.setAttribute("stroke-dasharray", circleSize * Math.PI); // Länge des Striches (Umfang des Kreises)
-    circle.setAttribute("stroke-dashoffset", circleSize * Math.PI); // Startposition des Striches (am Anfang des Kreises)
-
-    // Animation erstellen
-    const animation = document.createElementNS("http://www.w3.org/2000/svg", "animate");
-    animation.setAttribute("attributeName", "stroke-dashoffset");
-    animation.setAttribute("from", circleSize * Math.PI); // Startposition (am Anfang des Kreises)
-    animation.setAttribute("to", 0); // Endposition (am Ende des Kreises)
-    animation.setAttribute("dur", `${animationDuration}ms`); // Dauer der Animation (125ms)
-    animation.setAttribute("fill", "freeze"); // Animationseffekt beibehalten, wenn abgeschlossen
-    animation.setAttribute("calcMode", "linear"); // Linearer Animationsmodus (gleiche Geschwindigkeit)
-    circle.appendChild(animation);
-
-    svg.appendChild(circle);
-
-    // SVG-HTML-Code zurückgeben
-    return svg.outerHTML;
+function getWinningCombination() {
+    for (let i = 0; i < WINNING_COMBINATIONS.length; i++) {
+        const [a, b, c] = WINNING_COMBINATIONS[i];
+        if (fields[a] === fields[b] && fields[b] === fields[c] && fields[a] !== null) {
+            return WINNING_COMBINATIONS[i];
+        }
+    }
+    return null;
 }
 
 
-function generateAnimatedCrossSVG() {
-    const crossColor = "#FFC000";
-    const crossSize = 70;
-    const animationDuration = 125; // 125ms Animation
+function generateCircleSVG() {
+    const color = '#00B0EF';
+    const width = 70;
+    const height = 70;
+    return `<svg width="${width}" height="${height}">
+              <circle cx="35" cy="35" r="30" stroke="${color}" stroke-width="5" fill="none">
+                <animate attributeName="stroke-dasharray" from="0 188.5" to="188.5 0" dur="0.2s" fill="freeze" />
+              </circle>
+            </svg>`;
+}
+function generateCrossSVG() {
+    const color = '#FFC000';
+    const width = 70;
+    const height = 70;
+    const svgHtml = `
+      <svg width="${width}" height="${height}">
+        <line x1="0" y1="0" x2="${width}" y2="${height}"
+          stroke="${color}" stroke-width="5">
+          <animate attributeName="x2" values="0; ${width}" dur="200ms" />
+          <animate attributeName="y2" values="0; ${height}" dur="200ms" />
+        </line>
+        <line x1="${width}" y1="0" x2="0" y2="${height}"
+          stroke="${color}" stroke-width="5">
+          <animate attributeName="x2" values="${width}; 0" dur="200ms" />
+          <animate attributeName="y2" values="0; ${height}" dur="200ms" />
+        </line>
+      </svg>
+    `;
+    return svgHtml;
+}
 
-    // SVG-Element erstellen
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("width", crossSize);
-    svg.setAttribute("height", crossSize);
 
-    // Linie 1 (von links oben nach rechts unten)
-    const line1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    line1.setAttribute("x1", 0); // Startpunkt x-Koordinate
-    line1.setAttribute("y1", 0); // Startpunkt y-Koordinate
-    line1.setAttribute("x2", crossSize); // Endpunkt x-Koordinate
-    line1.setAttribute("y2", crossSize); // Endpunkt y-Koordinate
-    line1.setAttribute("stroke", crossColor); // Linienfarbe
-    line1.setAttribute("stroke-width", crossSize / 10); // Linienstärke
-    line1.setAttribute("stroke-dasharray", crossSize * Math.sqrt(2)); // Länge der Linie (Diagonale des Quadrats)
-    line1.setAttribute("stroke-dashoffset", crossSize * Math.sqrt(2)); // Startposition der Linie (außerhalb des Quadrats)
 
-    // Linie 2 (von rechts oben nach links unten)
-    const line2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    line2.setAttribute("x1", crossSize); // Startpunkt x-Koordinate
-    line2.setAttribute("y1", 0); // Startpunkt y-Koordinate
-    line2.setAttribute("x2", 0); // Endpunkt x-Koordinate
-    line2.setAttribute("y2", crossSize); // Endpunkt y-Koordinate
-    line2.setAttribute("stroke", crossColor); // Linienfarbe
-    line2.setAttribute("stroke-width", crossSize / 10); // Linienstärke
-    line2.setAttribute("stroke-dasharray", crossSize * Math.sqrt(2)); // Länge der Linie (Diagonale des Quadrats)
-    line2.setAttribute("stroke-dashoffset", crossSize * Math.sqrt(2)); // Startposition der Linie (außerhalb des Quadrats)
+function drawWinningLine(combination) {
+    const lineColor = '#ffffff';
+    const lineWidth = 5;
 
-    // Animation erstellen
-    const animation = document.createElementNS("http://www.w3.org/2000/svg", "animate");
-    animation.setAttribute("attributeName", "stroke-dashoffset");
-    animation.setAttribute("from", crossSize * Math.sqrt(2)); // Startposition (außerhalb des Quadrats)
-    animation.setAttribute("to", 0); // Endposition (innerhalb des Quadrats)
-    animation.setAttribute("dur", `${animationDuration}ms`); // Dauer der Animation (125ms)
-    animation.setAttribute("fill", "freeze"); // Animationseffekt beibehalten, wenn abgeschlossen
-    animation.setAttribute("calcMode", "linear"); // Linearer Animationsmodus (gleiche Geschwindigkeit)
-    line1.appendChild(animation.cloneNode(true)); // Animation für Linie 1
-    line2.appendChild(animation.cloneNode(true)); // Animation für Linie 2
+    const startCell = document.querySelectorAll(`td`)[combination[0]];
+    const endCell = document.querySelectorAll(`td`)[combination[2]];
+    const startRect = startCell.getBoundingClientRect();
+    const endRect = endCell.getBoundingClientRect();
 
-    svg.appendChild(line1);
-    svg.appendChild(line2);
+    const lineLength = Math.sqrt(
+        Math.pow(endRect.left - startRect.left, 2) + Math.pow(endRect.top - startRect.top, 2)
+    );
+    const lineAngle = Math.atan2(endRect.top - startRect.top, endRect.left - startRect.left);
 
-    // SVG-HTML-Code zurückgeben
-    return svg.outerHTML;
+    const line = document.createElement('div');
+    line.style.position = 'absolute';
+    line.style.width = `${lineLength}px`;
+    line.style.height = `${lineWidth}px`;
+    line.style.backgroundColor = lineColor;
+    line.style.top = `${ startRect.top + startRect.height / 2 - lineWidth / 2 } px`;
+    line.style.left = `${ startRect.left + startRect.width / 2 } px`;
+    line.style.transform = `rotate(${ lineAngle }rad)`;
+    document.getElementById('content').appendChild(line);
 }
