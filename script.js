@@ -110,23 +110,33 @@ function drawWinningLine(combination) {
     const lineColor = '#ffffff';
     const lineWidth = 5;
 
-    const startCell = document.querySelectorAll(`td`)[combination[0]];
-    const endCell = document.querySelectorAll(`td`)[combination[2]];
+    const startCell = document.querySelectorAll('td')[combination[0]];
+    const endCell = document.querySelectorAll('td')[combination[2]];
+
+    const contentDiv = document.getElementById('content');
+    const contentRect = contentDiv.getBoundingClientRect();
+
     const startRect = startCell.getBoundingClientRect();
     const endRect = endCell.getBoundingClientRect();
 
+    const startX = startRect.left - contentRect.left + startRect.width / 2;
+    const startY = startRect.top - contentRect.top + startRect.height / 2;
+    const endX = endRect.left - contentRect.left + endRect.width / 2;
+    const endY = endRect.top - contentRect.top + endRect.height / 2;
+
     const lineLength = Math.sqrt(
-        Math.pow(endRect.left - startRect.left, 2) + Math.pow(endRect.top - startRect.top, 2)
+        Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2)
     );
-    const lineAngle = Math.atan2(endRect.top - startRect.top, endRect.left - startRect.left);
+    const lineAngle = Math.atan2(endY - startY, endX - startX);
 
     const line = document.createElement('div');
     line.style.position = 'absolute';
     line.style.width = `${lineLength}px`;
     line.style.height = `${lineWidth}px`;
     line.style.backgroundColor = lineColor;
-    line.style.top = `${ startRect.top + startRect.height / 2 - lineWidth / 2 } px`;
-    line.style.left = `${ startRect.left + startRect.width / 2 } px`;
-    line.style.transform = `rotate(${ lineAngle }rad)`;
-    document.getElementById('content').appendChild(line);
+    line.style.top = `${startY - lineWidth / 2}px`;
+    line.style.left = `${startX}px`;
+    line.style.transform = `rotate(${lineAngle}rad)`;
+    line.style.transformOrigin = `top left`;
+    contentDiv.appendChild(line);
 }
